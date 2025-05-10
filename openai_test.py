@@ -63,7 +63,7 @@ churn_probabilities = model.predict_proba(X_all)[:, 1]
 # 이탈 확률을 df(read_csv)에 추가
 df['churn_probability'] = churn_probabilities
 
-# 고위험 고객 필터링 (확률은 임의로 지정)
+# 고위험 고객 필터링 (확률은 기업 관리자가 입력한 값 가져오는 방식으로 바꿀 예정)
 # 고객 중 확률이 0.7 이상인 고객의 데이터만 필터링 
 high_risk_customers = df[df['churn_probability'] >= 0.7]
 
