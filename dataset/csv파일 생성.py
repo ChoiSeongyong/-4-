@@ -2,6 +2,7 @@ import pandas as pd
 import random
 from faker import Faker
 from datetime import datetime, timedelta
+import calendar
 
 fake = Faker('ko_KR')
 Faker.seed(42)
