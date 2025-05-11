@@ -1,7 +1,5 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
@@ -9,28 +7,18 @@ import openai
 import os
 from datetime import datetime
 
-# 데이터 로딩
-df = pd.read_csv("labeled_customer_data.csv")
+# 데이터 불러오기
+df_raw = pd.read_csv("dummy_customer_data.csv", encoding='utf-8-sig')
+df_processed = pd.read_csv("processed_customer_data.csv")
 
 # 특성과 타깃 분리
-X = df.drop(columns=["name", "email", "last_login", "days_since_login", "churned"])
-y = df["churned"]
-
-# 인코딩
-cat_cols = X.select_dtypes(include='object').columns.tolist()
-num_cols = X.select_dtypes(include='number').columns.tolist()
-
-encoder = OneHotEncoder(sparse_output=False)
-X_cat = encoder.fit_transform(X[cat_cols])
-
-scaler = StandardScaler()
-X_num = scaler.fit_transform(X[num_cols])
-
-X_all = np.hstack((X_cat, X_num))
+X = df_processed.drop(columns=["churned"])
+y = df_processed["churned"]
 
 # 데이터 분할 (8:1:1)
-X_temp, X_test, y_temp, y_test = train_test_split(X_all, y, test_size=0.1, random_state=42, stratify=y)
-X_train, X_val, y_train, y_val = train_test_split(X_temp, y_temp, test_size=1/9, random_state=42, stratify=y_temp)
+from sklearn.model_selection import train_test_split
+X_temp, X_test, y_temp, y_test = train_test_split(X, y, test_size=0.1, stratify=y, random_state=42)
+X_train, X_val, y_train, y_val = train_test_split(X_temp, y_temp, test_size=1/9, stratify=y_temp, random_state=42)
 
 # 모델 학습 (기본 설정: max_depth=5)
 model = DecisionTreeClassifier(max_depth=5, random_state=42)
@@ -58,26 +46,25 @@ plt.show()
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 # 각 고객별 이탈 확률 예측
-churn_probabilities = model.predict_proba(X_all)[:, 1]
+churn_probabilities = model.predict_proba(X)[:, 1]
 
 # 이탈 확률을 df(read_csv)에 추가
-df['churn_probability'] = churn_probabilities
+df_raw['churn_probability'] = churn_probabilities
 
 # 고위험 고객 필터링 (확률은 기업 관리자가 입력한 값 가져오는 방식으로 바꿀 예정)
 # 고객 중 확률이 0.7 이상인 고객의 데이터만 필터링 
-high_risk_customers = df[df['churn_probability'] >= 0.7]
+high_risk_customers = df_raw[df_raw['churn_probability'] >= 0.7]
 
 current_date = datetime.now()
 
 # 필요한 데이터만 가져와서 gpt 메시지 생성
-for index, customer in high_risk_customers.iterrows():
+for _, customer in high_risk_customers.iterrows():
     name = customer['name']
     age = customer['age']
     preferred_category = customer['preferred_category']
     last_login = pd.to_datetime(customer['last_login'])
     email = customer['email']
-
-    days_since_last_login = (current_date - last_login).days
+    days = (current_date - last_login).days
 
     # GPT-3 모델을 이용해 맞춤형 메시지 생성
     prompt = f"""
@@ -85,7 +72,7 @@ for index, customer in high_risk_customers.iterrows():
     - 고객 이름: {name}
     - 고객 나이: {age}세 (나이는 메시지에서 언급하면 안됨)
     - 고객 선호 카테고리: {preferred_category}
-    - 고객의 마지막 로그인 후 {days_since_last_login}일이 지남.
+    - 고객의 마지막 로그인 후 {days}일이 지남.
 
     고객 데이터 기반 고객님에게 다음과 같은 내용을 포함하는 메시지 생성:
     1. 고객의 이름, 마지막 로그인 후 지난일 수를 언급하면서 걱정한 듯한 메시지
