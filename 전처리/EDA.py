@@ -18,15 +18,16 @@ else:
 print("[2] 전체 평균 시청시간: {:.2f}분".format(df['watch_time'].mean()))
 print("[3] 전체 평균 나이: {:.2f}세".format(df['age'].mean()))
 
-# 4. 결제 상태별 통계
+# 4. 이탈 여부별 통계
+df['churned'] = df['payment_status'].map({'paid': 0, 'unpaid': 1})
 print("\n[4] 결제 상태별 고객 수:")
-print(df['payment_status'].value_counts())
+print(df['churned'].value_counts())
 
 print("\n[5] 결제 상태별 평균 나이:")
-print(df.groupby('payment_status')['age'].mean())
+print(df.groupby('churned')['age'].mean())
 
 print("\n[6] 결제 상태별 평균 시청시간:")
-print(df.groupby('payment_status')['watch_time'].mean())
+print(df.groupby('churned')['watch_time'].mean())
 
 # 5. 선호 장르 분포
 print("\n[7] 선호 장르 분포:")
@@ -37,7 +38,7 @@ df['last_login'] = pd.to_datetime(df['last_login'])
 df['days_since_login'] = (datetime.today() - df['last_login']).dt.days
 print("\n[8] 평균 로그인 경과 일 수: {:.2f}일".format(df['days_since_login'].mean()))
 print("\n[9] 결제 상태별 평균 로그인 경과일:")
-print(df.groupby('payment_status')['days_since_login'].mean())
+print(df.groupby('churned')['days_since_login'].mean())
 
 # 7. 이상치 탐지
 def detect_outliers_zscore(data, threshold=3):
