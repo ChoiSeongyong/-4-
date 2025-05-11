@@ -6,10 +6,10 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import accuracy_score
 
 # 데이터 불러오기
-df = pd.read_csv("labeled_customer_data.csv")
+df = pd.read_csv("processed_customer_data.csv")
 
 # 특성과 라벨 분리
-X = df.drop(columns=["name", "email", "last_login", "days_since_login", "churned"])
+X = df.drop(columns=["churned"])
 y = df["churned"]
 
 # 범주형, 수치형 분리
