@@ -32,9 +32,6 @@ print(f"Train Accuracy: {train_acc:.4f}")
 print(f"Val Accuracy:   {val_acc:.4f}")
 print(f"Test Accuracy(의사결정트리 점수):  {test_acc:.4f}")
 
-# 리포트 출력
-print("\n 분류 리포트:")
-print(classification_report(y_test, y_pred, target_names=["Not Churned", "Churned"]))
 
 # 혼동 행렬 시각화
 cm = confusion_matrix(y_test, model.predict(X_test), labels=[0, 1])
