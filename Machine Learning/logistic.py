@@ -28,7 +28,3 @@ for epoch in range(1, epochs + 1):
 y_pred = model.predict(X_test)
 test_acc = accuracy_score(y_test, y_pred)
 print(f"\n 로지스틱 리그레션 정확도: {test_acc:.4f}")
-
-# 리포트 출력
-print("\n 분류 리포트:")
-print(classification_report(y_test, y_pred, target_names=["Not Churned", "Churned"]))
